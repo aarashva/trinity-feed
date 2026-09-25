@@ -1,0 +1,38 @@
+name: Auto Fetch Strike Daily
+
+on:
+  schedule:
+    # ساعت 08:00 صبح به وقت گرینویچ معادل 11:30 ظهر به وقت ایران (دوشنبه تا جمعه)
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch: # امکان تست دستی با یک کلیک
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Libraries
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Execute Scraper
+        run: |
+          python scraper.py
+
+      - name: Commit and Push Results
+        run: |
+          git config --global user.name "Trinity Bot"
+          git config --global user.email "bot@trinity.local"
+          git add today.json
+          git commit -m "Auto Update Strike [skip ci]" || exit 0
+          git push
